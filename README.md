@@ -32,5 +32,16 @@ Write down your question in `data/question.txt` and execute
 
 ```bash
 $ python3 main.py
+```
 
+Or
+
+```bash
+$ python3 main.py -c config.ini
+```
+
+Or
+
+```bash
+$ python3 main.py -q question_path.txt
 ```

@@ -26,7 +26,9 @@ log = logging.getLogger(__name__)
 def read_question(path):
     """ Read question from file """
     path_fd = open(path, 'r')
-    return path_fd.read()
+    question_txt = path_fd.read()
+    log.info("{}".format(question_txt))
+    return question_txt
 
 
 def ask_chatgpt(question: str, chatgpt_key: str):
@@ -34,19 +36,25 @@ def ask_chatgpt(question: str, chatgpt_key: str):
     client = OpenAI(
         api_key=chatgpt_key
     )
+    response = None
 
-    response = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": question,
-            }
-        ],
-        model="gpt-3.5-turbo",
-    )
+    try:
+        response = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": question,
+                }
+            ],
+            model="gpt-3.5-turbo",
+        )
 
-    log.info("ChatGPT")
-    log.info(response)
+    except Exception as e:
+        log.error("[+]: ChatGPT: {}".format(e))
+
+    if response:
+        log.info("ChatGPT")
+        log.info(response)
 
 
 def ask_bing(question):
@@ -64,12 +72,17 @@ def ask_bard(question: str, psid: str, psidcc: str, psidts: str):
         "__Secure-1PSIDTS": psidts
     }
 
-    bard = BardCookies(cookie_dict=cookie_dict)
+    bard = None
+    try:
+        bard = BardCookies(cookie_dict=cookie_dict)
+    except Exception as e:
+        log.error("[+] Bard: {}".format(e))
 
-    response = bard.get_answer(question)['content']
+    if bard:
+        response = bard.get_answer(question)['content']
 
-    log.info("Bard")
-    log.info(response)
+        log.info("Bard")
+        log.info(response)
 
 
 if __name__ == '__main__':
@@ -88,7 +101,7 @@ if __name__ == '__main__':
     conf = Config(args.config)
 
     question = read_question(args.question)
-    if not conf.chatgpt_key:
+    if conf.chatgpt_key:
         ask_chatgpt(question=question, chatgpt_key=conf.chatgpt_key)
 
     if conf.bing_key:
